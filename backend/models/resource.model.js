@@ -27,7 +27,7 @@ const resourceSchema = mongoose.Schema(
       type: String,
       trim: true,
     },
-    status: {
+    availability_status: {
       type: String,
       required: true,
       enum: ["PENDING", "LIVE"],

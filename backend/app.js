@@ -37,6 +37,7 @@ db.once("open", () => {
 
 // app.use(auth_middleware.validateToken);
 require("./routes/resources.route")(app);
+require("./routes/views.route")(app);
 
 
 app.get("/request", (req, res) => {

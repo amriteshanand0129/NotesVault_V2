@@ -8,12 +8,12 @@ const contributionSchema = mongoose.Schema(
       required: true,
       ref: "Users",
     },
-    resource_id: {
+    contribution_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Resources",
     },
-    status: {
+    contribution_status: {
       type: String,
       default: "PENDING",
       enum: ["PENDING", "APPROVED", "REJECTED", "DELETED"],

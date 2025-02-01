@@ -1,8 +1,9 @@
 // Dependencies
 const fs = require("fs");
 const path = require("path");
-const AWS = require("aws-sdk");
+const logger = require("../logger");
 const mongoose = require("mongoose");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { PDFDocument, StandardFonts, rgb, degrees } = require("pdf-lib");
 
 // Database models
@@ -11,13 +12,16 @@ const subject_model = require("../models/subject.model");
 const resource_model = require("../models/resource.model");
 const contribution_model = require("../models/contribution.model");
 
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+// Configuring AWS S3
+const s3 = new S3Client({
   region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
-// Resource upload controller for Amazon S3
+// Resource uploader to AWS S3
 const uploadToS3 = async (file_name, file_path, file_type) => {
   const file_content = fs.readFileSync(file_path);
 
@@ -28,11 +32,16 @@ const uploadToS3 = async (file_name, file_path, file_type) => {
     ContentType: file_type,
   };
 
-  const awsResponse = await s3.upload(params).promise();
+  const command = new PutObjectCommand(params);
+  const awsResponse = await s3.send(command);
 
-  return awsResponse;
+  return {
+    ...awsResponse,
+    Location: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${file_name}`,
+  };
 };
 
+// File size calculator
 const calculateFileSize = (file_size) => {
   let file_size_String = file_size;
 
@@ -47,6 +56,7 @@ const calculateFileSize = (file_size) => {
   return file_size_String;
 };
 
+// Watermark applier
 const applyWatermark = async (inputFilePath) => {
   const fontSize = 12;
   const color = rgb(0, 0, 1);
@@ -78,6 +88,7 @@ const applyWatermark = async (inputFilePath) => {
   return outputFilePath;
 };
 
+// Subject list updater
 const addSubject = async (subject_code, subject_name) => {
   const subject = await subject_model.findOne({ subject_code: subject_code });
   if (!subject) {
@@ -87,67 +98,69 @@ const addSubject = async (subject_code, subject_name) => {
   }
 };
 
+// Resource upload controller for both ADMIN and STUDENT
 const uploadResource = async (req, res) => {
   let file_path = "",
     watermarkedFilePath = "";
 
-  if (req.user.user_type == "ADMIN") {
-    try {
-      file_path = req.file.path;
+  try {
+    file_path = req.file.path;
+    if (req.user.user_type == "ADMIN") {
       watermarkedFilePath = await applyWatermark(file_path);
       const file_size = calculateFileSize(fs.statSync(watermarkedFilePath).size);
       const awsResponse = await uploadToS3(req.file.filename, watermarkedFilePath, req.file.mimetype);
+      const awsLocation = awsResponse.Location.replace(" ", "%20");
 
       const created = await resource_model.create({
         subject_code: req.body.subject_code,
         subject_name: req.body.subject_name,
-        status: "LIVE",
+        availability_status: "LIVE",
+        file_name: req.body.file_name,
+        description: req.body.description,
+        file_size: file_size,
+        file_address: awsLocation,
+      });
+
+      await addSubject(req.body.subject_code, req.body.subject_name);
+
+      res.status(200).send({ message: "File uploaded successfully!" });
+      logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: "${awsLocation}"`);
+      return;
+    } else if (req.user.user_type == "STUDENT") {
+      const file_size = calculateFileSize(fs.statSync(file_path).size);
+      const awsResponse = await uploadToS3(req.file.filename, file_path, req.file.mimetype);
+
+      const contributionId = `${req.user._id}-${Date.now()}`;
+      const contribution = await contribution_model.create({
+        contributer_id: req.user._id,
+        contribution_id: contributionId,
+        contribution_status: "PENDING",
+      });
+
+      const created = await resource_model.create({
+        subject_code: req.body.subject_code,
+        subject_name: req.body.subject_name,
+        contributer_id: req.user._id,
+        contribution_id: contributionId,
+        contributer_name: req.user.name,
+        availability_status: "PENDING",
         file_name: req.body.file_name,
         description: req.body.description,
         file_size: file_size,
         file_address: awsResponse.Location,
       });
-      await addSubject(req.body.subject_code, req.body.subject_name);
-      res.status(200).send({ message: "File uploaded successfully!" });
-    } catch (err) {
-      console.error("Error uploading file to S3:", err);
-      res.status(500).json({ error: "Failed to upload file" });
-    } finally {
-      if (fs.existsSync(file_path)) fs.unlinkSync(file_path);
-      if (fs.existsSync(watermarkedFilePath)) fs.unlinkSync(watermarkedFilePath);
+
+      res.status(200).send({ message: "File uploaded successfully! You can check the status of your contribution in the profile tab" });
+      logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: ${awsResponse.Location}`);
+      return;
     }
-  } else {
+  } catch (err) {
+    res.status(500).send({ error: "Failed to upload file" });
+    logger.error(`<RESOURCE>: Failed to upload file by ${req.user.user_type} ${req.user.name}: ${err}`);
+  } finally {
+    if (fs.existsSync(file_path)) fs.unlinkSync(file_path);
+    if (fs.existsSync(watermarkedFilePath)) fs.unlinkSync(watermarkedFilePath);
   }
-  //     try {
-  //       const pdfbuffer = file.readFileSync(filepath);
-  //       const created = await pending_resource_model.create({
-  //         contributedBy: req.user.name,
-  //         contributerId: req.user._id,
-  //         subject_code: req.body.subject_code,
-  //         subject_name: req.body.subject_name,
-  //         file_name: req.body.file_name,
-  //         description: req.body.description,
-  //         filebuffer: pdfbuffer,
-  //         filesize: filesize_String,
-  //       });
-  //       console.log("File added to database");
-  //       res.status(201).send({
-  //         message: "Thanks for Your Contribution! You can check your contribution status in Profile Tab",
-  //         redirectTo: "/",
-  //       });
-  //     } catch (err) {
-  //       console.log("Error while uploading contribution", err);
-  //       res.status(401).send({
-  //         error: "Error while uploading contribution",
-  //         redirectTo: "/uploadResource",
-  //       });
-  //     } finally {
-  //       file.unlink(filepath, function (err) {
-  //         if (err) console.log("Error deleting file", err);
-  //         else console.log("File deleted succesfully");
-  //       });
-  //     }
-  //   }
 };
 
 // Accepting contribution controller for Admin
