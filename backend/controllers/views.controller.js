@@ -24,14 +24,28 @@ const getSubjectFiles = async (req, res) => {
     if (subject_files.length === 0) {
       return res.status(404).send({ error: "No Subjects found" });
     }
-    res.status(200).send(subject);
+    res.status(200).send(subject_files);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch Subject Files" });
     logger.error(`<VIEWS>: Failed to fetch subject files for ${req.params.subject_code}: ${err}`);
   }
 };
 
+const getFileDetails = async (req, res) => {
+  try {
+    const file = await resource_model.findById(req.params.file_id);
+    if (!file) {
+      return res.status(404).send({ error: "File not found" });
+    }
+    res.status(200).send(file);
+  } catch (err) {
+    res.status(500).send({ error: "Failed to fetch file details" });
+    logger.error(`<VIEWS>: Failed to fetch file details for ${req.params.file_id}: ${err}`);
+  }
+};
+
 module.exports = {
   getSubjects: getSubjects,
   getSubjectFiles: getSubjectFiles,
+  getFileDetails: getFileDetails,
 };

@@ -3,6 +3,7 @@ import App from "./App.jsx";
 import { createRoot } from "react-dom/client";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { UserProvider } from "./context/userContext.jsx";
+import { BreadcrumbProvider } from "./context/breadcrumbContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <Auth0Provider
@@ -14,7 +15,9 @@ createRoot(document.getElementById("root")).render(
     }}
   >
     <UserProvider>
-      <App />
+      <BreadcrumbProvider>
+        <App />
+      </BreadcrumbProvider>
     </UserProvider>
   </Auth0Provider>
 );

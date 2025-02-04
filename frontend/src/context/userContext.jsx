@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
 
@@ -10,7 +10,7 @@ export const UserProvider = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
     accessToken: null,
-    logout: null
+    logout: null,
   });
 
   useEffect(() => {
@@ -30,11 +30,7 @@ export const UserProvider = ({ children }) => {
     fetchUserData();
   }, [isAuthenticated, user, isLoading, getAccessTokenSilently]);
 
-  return (
-    <UserContext.Provider value={userData}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={userData}>{children}</UserContext.Provider>;
 };
 
 export const userContext = () => useContext(UserContext);

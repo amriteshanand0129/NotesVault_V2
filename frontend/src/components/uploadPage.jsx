@@ -1,10 +1,9 @@
-import React, { useState } from "react";
 import axios from "axios";
+import React, { useState } from "react";
 import { userContext } from "../context/userContext.jsx";
 
 const ResourceUploadPage = () => {
-  const { accessToken, isAuthenticated } = userContext();
-
+  const { user, accessToken, isAuthenticated } = userContext();
   const [formData, setFormData] = useState({
     subject_code: "",
     subject_name: "",
