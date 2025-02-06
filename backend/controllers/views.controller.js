@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 // Database models
 const subject_model = require("../models/subject.model");
 const resource_model = require("../models/resource.model");
+const contribution_model = require("../models/contribution.model");
 
 // Subject List fetcher
 const getSubjects = async (req, res) => {
@@ -31,6 +32,7 @@ const getSubjectFiles = async (req, res) => {
   }
 };
 
+// File Details fetcher
 const getFileDetails = async (req, res) => {
   try {
     const file = await resource_model.findById(req.params.file_id);
@@ -44,8 +46,19 @@ const getFileDetails = async (req, res) => {
   }
 };
 
+getPendingContributions = async (req, res) => {
+  try {
+    const pending_contributions = await contribution_model.find({ status: "pending" }).populate("resource_id");
+    res.status(200).send(pending_contributions);
+  } catch (err) {
+    res.status(500).send({ error: "Failed to fetch pending contributions" });
+    logger.error(`<VIEWS>: Failed to fetch pending contributions: ${err}`);
+  }
+};
+
 module.exports = {
   getSubjects: getSubjects,
   getSubjectFiles: getSubjectFiles,
   getFileDetails: getFileDetails,
+  getPendingContributions: getPendingContributions,
 };

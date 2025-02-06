@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+#root {
+  min-height: 100vh;
+  height: 100%;
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+}
+
+@media screen and (max-width: 530px) {
+  .form-container {
+    width: 95% !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}

@@ -9,15 +9,18 @@ const contributionSchema = mongoose.Schema(
       ref: "Users",
     },
     contribution_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
-      ref: "Resources",
     },
     contribution_status: {
       type: String,
       default: "PENDING",
       enum: ["PENDING", "APPROVED", "REJECTED", "DELETED"],
       required: true,
+    },
+    resource_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Resources",
     },
     remarks: {
       type: String,

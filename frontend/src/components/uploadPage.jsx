@@ -61,48 +61,51 @@ const ResourceUploadPage = () => {
       setLoading(false);
     }
   };
+  console.log(user);
 
   return (
-    <div style={{ width: "40%", margin: "10vh auto 50px", padding: "50px", border: "1px solid grey", borderRadius: "10px" }}>
-      <div style={{ textAlign: "center", borderBottom: "1px solid rgb(177, 177, 177)", marginBottom: "30px" }}>
-        <h4>Add Resource</h4>
+    <>
+      <div className="form-container max-w-lg mx-auto my-10 lg:px-8 sm:px-2 py-2 pb-4 sm:px-2 border-2 border-gray-300 rounded-lg bg-white">
+        <div className="text-lg p-3 text-center border-b border-gray-400 mb-8">
+          { user.userType === "ADMIN" ? <h4>Upload Resource</h4> : <h4>Contribute Resource</h4> }
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="subject_code" className="form-label">
+              Subject Code
+            </label>
+            <input type="text" id="subject_code" name="subject_code" className="form-control w-full border-1 border-gray-400" value={formData.subject_code} onChange={handleInputChange} />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="subject_name" className="form-label">
+              Subject Name
+            </label>
+            <input type="text" id="subject_name" name="subject_name" className="form-control w-full border-1 border-gray-400" value={formData.subject_name} onChange={handleInputChange} />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="file_name" className="form-label">
+              File Name
+            </label>
+            <input type="text" id="file_name" name="file_name" className="form-control w-full border-1 border-gray-400" value={formData.file_name} onChange={handleInputChange} />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="description" className="form-label">
+              Description
+            </label>
+            <input type="text" id="description" name="description" className="form-control w-full border-1 border-gray-400" value={formData.description} onChange={handleInputChange} />
+          </div>
+          <div className="mb-3">
+            <input type="file" id="fileInput" name="fileInput" className="form-control w-full border-1 border-gray-400" onChange={handleFileChange} />
+            <span className="form-text">Only PDF Files are allowed</span>
+          </div>
+          <div className="text-center mt-10">
+            <button type="submit" className="btn btn-dark w-full sm:w-auto" disabled={loading}>
+              {loading ? "Uploading..." : "Upload"}
+            </button>
+          </div>
+        </form>
       </div>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="subject_code" className="form-label">
-            Subject Code
-          </label>
-          <input type="text" id="subject_code" name="subject_code" className="form-control" style={{ border: "1px solid grey" }} value={formData.subject_code} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="subject_name" className="form-label">
-            Subject Name
-          </label>
-          <input type="text" id="subject_name" name="subject_name" className="form-control" style={{ border: "1px solid grey" }} value={formData.subject_name} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="file_name" className="form-label">
-            File Name
-          </label>
-          <input type="text" id="file_name" name="file_name" className="form-control" style={{ border: "1px solid grey" }} value={formData.file_name} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">
-            Description
-          </label>
-          <input type="text" id="description" name="description" className="form-control" style={{ border: "1px solid grey" }} value={formData.description} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <input type="file" id="fileInput" name="fileInput" className="form-control" style={{ border: "1px solid grey" }} onChange={handleFileChange} />
-          <span className="form-text">File size must be less than 16MB.</span>
-        </div>
-        <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <button type="submit" className="btn btn-dark" disabled={loading}>
-            {loading ? "Uploading..." : "Upload"}
-          </button>
-        </div>
-      </form>
-    </div>
+    </>
   );
 };
 

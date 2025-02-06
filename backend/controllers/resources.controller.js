@@ -105,6 +105,8 @@ const uploadResource = async (req, res) => {
 
   try {
     file_path = req.file.path;
+
+    // ADMIN
     if (req.user.user_type == "ADMIN") {
       watermarkedFilePath = await applyWatermark(file_path);
       const file_size = calculateFileSize(fs.statSync(watermarkedFilePath).size);
@@ -126,16 +128,14 @@ const uploadResource = async (req, res) => {
       res.status(200).send({ message: "File uploaded successfully!" });
       logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: "${awsLocation}"`);
       return;
-    } else if (req.user.user_type == "STUDENT") {
+    } 
+    
+    // STUDENT CONTRIBUTION
+    else if (req.user.user_type == "STUDENT") {
       const file_size = calculateFileSize(fs.statSync(file_path).size);
       const awsResponse = await uploadToS3(req.file.filename, file_path, req.file.mimetype);
 
       const contributionId = `${req.user._id}-${Date.now()}`;
-      const contribution = await contribution_model.create({
-        contributer_id: req.user._id,
-        contribution_id: contributionId,
-        contribution_status: "PENDING",
-      });
 
       const created = await resource_model.create({
         subject_code: req.body.subject_code,
@@ -148,6 +148,13 @@ const uploadResource = async (req, res) => {
         description: req.body.description,
         file_size: file_size,
         file_address: awsResponse.Location,
+      });
+
+      const contribution = await contribution_model.create({
+        contributer_id: req.user._id,
+        contribution_id: contributionId,
+        resource_id: created._id,
+        contribution_status: "PENDING",
       });
 
       res.status(200).send({ message: "File uploaded successfully! You can check the status of your contribution in the profile tab" });

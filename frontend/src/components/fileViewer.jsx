@@ -27,40 +27,63 @@ const FileViewer = () => {
       fetchFile();
     }
     setBreadcrumb([
-      { name: "Dashboard", link: "/" },	
+      { name: "Dashboard", link: "/" },
       { name: "Resources", link: "/resources" },
       { name: file?.subject_name, link: `/resources/${file?.subject_code}` },
-      { name: file?.file_name, link: "#" }
+      { name: file?.file_name, link: "#" },
     ]);
   }, [file, fileId, setBreadcrumb]);
 
   if (loading) return <p>Loading...</p>;
   if (!file) return <p>File not found.</p>;
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/getSignedUrl?fileName=${file.file_name}`);
+      const data = await response.json();
+
+      if (data.url) {
+        const link = document.createElement("a");
+        link.href = data.url;
+        link.download = file.file_name; // Sets proper file name
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        console.error("Failed to get download URL");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
+  };
+
   return (
     <div className="">
       <SecondaryNavbar searchCallback={() => {}} />
-      <div class="card sm:w-1/2 lg:max-w-sm m-auto">
-        <div class="card-body">
-          <h3 class="card-title text-xl text-black ">{file.subject_code}</h3>
-          <p class="card-text">{file.subject_name}</p>
+      <div className="card sm:w-1/2 lg:max-w-sm m-auto">
+        <div className="card-body">
+          <h3 className="card-title text-xl text-black ">{file.subject_code}</h3>
+          <p className="card-text">{file.subject_name}</p>
         </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            <span class="resourceHeading text-gray-500">File Name: </span>
+        <ul className="list-group list-group-flush">
+          <li className="list-group-item">
+            <span className="resourceHeading text-gray-500">File Name: </span>
             {file.file_name}
           </li>
-          <li class="list-group-item">
-            <span class="resourceHeading text-gray-500">Description: </span>
+          <li className="list-group-item">
+            <span className="resourceHeading text-gray-500">Description: </span>
             {file.description}
           </li>
-          <li class="list-group-item">
-            <span class="resourceHeading text-gray-500">File Size: </span>
+          <li className="list-group-item">
+            <span className="resourceHeading text-gray-500">File Size: </span>
             {file.file_size}
           </li>
         </ul>
       </div>
-
+      <button className="btn btn-primary mt-4" onClick={handleDownload}>
+        Download File
+      </button>
+      
       <div className="mt-4 ">
         <iframe src={file.file_address} className="lg:w-4/5 sm:w-full m-auto lg:h-[700px] border rounded-lg"></iframe>
       </div>

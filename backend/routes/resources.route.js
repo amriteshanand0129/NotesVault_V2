@@ -1,4 +1,7 @@
+// Dependencies
 const multer = require("multer");
+
+// Middlewares and Controllers
 const auth_middleware = require("../middlewares/auth.middleware");
 const resource_controller = require("../controllers/resources.controller");
 const resource_middleware = require("../middlewares/resources.middleware");
