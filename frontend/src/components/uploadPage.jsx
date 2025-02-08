@@ -48,8 +48,9 @@ const ResourceUploadPage = () => {
       });
 
       const result = response.data;
+      setFormData({ subject_code: "", subject_name: "", file_name: "", description: "", fileInput: null });
       alert(result.message);
-      window.location.href = result.redirectTo;
+      window.location.href = "/";
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data && error.response.data.error) {
@@ -66,9 +67,7 @@ const ResourceUploadPage = () => {
   return (
     <>
       <div className="form-container max-w-lg mx-auto my-10 lg:px-8 sm:px-2 py-2 pb-4 sm:px-2 border-2 border-gray-300 rounded-lg bg-white">
-        <div className="text-lg p-3 text-center border-b border-gray-400 mb-8">
-          { user.userType === "ADMIN" ? <h4>Upload Resource</h4> : <h4>Contribute Resource</h4> }
-        </div>
+        <div className="text-lg p-3 text-center border-b border-gray-400 mb-8">{user.userType === "ADMIN" ? <h4>Upload Resource</h4> : <h4>Contribute Resource</h4>}</div>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="subject_code" className="form-label">

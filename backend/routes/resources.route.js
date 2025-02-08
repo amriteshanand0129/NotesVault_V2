@@ -29,6 +29,6 @@ const upload = multer({ storage: storage });
 module.exports = (app) => {
   app.post("/upload", [auth_middleware.validateToken, auth_middleware.addUserData, upload.single("fileInput"), resource_middleware.validateUploadForm, multerErrorHandler], resource_controller.uploadResource);
   app.post("/acceptContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.acceptContribution);
-  //   app.post("/rejectContribution", [upload.none(), auth_middleware.verifyToken, auth_middleware.isAdmin], resource_controller.rejectContribution);
+  app.post("/rejectContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.rejectContribution);
   //   app.delete("/deleteResource/:id", [auth_middleware.verifyToken, auth_middleware.isAdmin], resource_controller.deleteResource);
 };

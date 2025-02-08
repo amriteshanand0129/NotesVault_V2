@@ -30,7 +30,7 @@ const resourceSchema = mongoose.Schema(
     availability_status: {
       type: String,
       required: true,
-      enum: ["PENDING", "LIVE"],
+      enum: ["PENDING", "LIVE", "ARCHIVED"],
     },
     file_name: {
       type: String,

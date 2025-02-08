@@ -57,4 +57,17 @@ const acceptContribution = async (accessToken, formData) => {
   }
 };
 
-export { getSubjects, getSubjectFiles, getFileDetails, getPendingContributions, acceptContribution };
+const rejectContribution = async (accessToken, formData) => {
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/rejectContribution`, formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: "An error occurred while rejecting contribution." };
+  }
+};
+
+export { getSubjects, getSubjectFiles, getFileDetails, getPendingContributions, acceptContribution, rejectContribution };

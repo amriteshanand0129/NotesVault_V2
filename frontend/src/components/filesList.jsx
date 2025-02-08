@@ -15,7 +15,7 @@ const FileCard = ({ file }) => {
   return (
     <div onClick={() => handleFileClick(file)}>
       <div className="grid gap-4 sm:px-2 lg:px-4 text-center cursor-pointer">
-        <div className="subject-card border-1 border-gray-400 text-gray-600 bg-white hover:border-black hover:text-black rounded-2xl shadow-md p-4 flex flex-col justify-center content-center max-w-[400px] transition-transform duration-200 hover:scale-105">
+        <div className="subject-card border-1 border-gray-400 text-gray-600 bg-white hover:border-black hover:text-black rounded-2xl shadow-md p-3 flex flex-col justify-center content-center max-w-[400px] transition-transform duration-200 hover:scale-105">
           <div>
             <h2 className="text-lg">{file.file_name}</h2>
             <h2 className="text-lg">{file.description}</h2>

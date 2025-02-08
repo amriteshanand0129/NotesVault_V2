@@ -9,7 +9,7 @@ const SubjectCard = ({ subjectCode, subjectName, resourceCount }) => {
   return (
     <Link to={`./${subjectCode}`}>
       <div className="grid gap-4 sm:px-2 lg:px-4 text-center">
-        <div className="subject-card border-1 border-gray-400 text-gray-600 hover:border-black hover:text-black rounded-2xl shadow-md p-4 flex flex-col justify-center content-center max-w-[400px] transition-transform duration-200 hover:scale-105">
+        <div className="subject-card border-1 border-gray-400 bg-white text-gray-600 hover:border-black hover:text-black rounded-2xl shadow-md p-3 flex flex-col justify-center content-center max-w-[400px] transition-transform duration-200 hover:scale-105">
           <div>
             <h3 className="text-lg">{subjectCode}</h3>
             <h3 className="text-lg">{subjectName}</h3>

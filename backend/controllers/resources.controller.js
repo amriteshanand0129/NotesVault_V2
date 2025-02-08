@@ -198,7 +198,7 @@ const acceptContribution = async (req, res) => {
     try {
       await s3.send(new DeleteObjectCommand(deleteParams));
     } catch (err) {
-      logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to delete unwatermarked file ${resource.file_address} from S3 while accepting contribution ${resource.contribution_id}: ${err}`);
+      logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete unwatermarked file ${resource.file_address} from S3 while accepting contribution ${resource.contribution_id}: ${err}`);
     }
 
     resource.subject_code = req.body.subject_code;
@@ -215,13 +215,13 @@ const acceptContribution = async (req, res) => {
     try {
       await contribution_model.updateOne({ contribution_id: req.body.contribution_id }, { contribution_status: "APPROVED" });
     } catch (err) {
-      logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to update contribution status to APPROVED for contribution ${req.body.contribution_id}: ${err}`);
+      logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to update contribution status to APPROVED for contribution ${req.body.contribution_id}: ${err}`);
     }
 
-    logger.info(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Contribution ${req.body.contribution_id} accepted successfully`);
+    logger.info(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Contribution ${req.body.contribution_id} accepted successfully`);
     res.status(201).send({ message: "Contribution Accepted Successfully" });
   } catch (err) {
-    logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to accept contribution ${req.body.contribution_id}: ${err}`);
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to accept contribution ${req.body.contribution_id}: ${err}`);
     res.status(401).send({
       error: "Failed to Accept Contribution",
     });
@@ -233,31 +233,19 @@ const acceptContribution = async (req, res) => {
 
 // Reject contribution controller for Admin
 const rejectContribution = async (req, res) => {
-  const user = req.user;
   try {
-    const file = await pending_resource_model.findOne({ _id: req.body._id });
-    const created = await rejected_contributions_model.create({
-      contributerId: file.contributerId,
-      uploadedOn: file.createdAt,
-      subject_code: file.subject_code,
-      subject_name: file.subject_name,
-      file_name: file.file_name,
-      description: file.description,
-      remarks: req.body.remarks,
-    });
-    const result = await pending_resource_model.deleteOne({ _id: req.body._id });
-    if (result.deletedCount == 1) {
-      console.log("Pending Contribution List Updated");
-    } else {
-      console.log("Failed to update Pending Contribution List");
-    }
+    await resource_model.updateOne({ _id: req.body.resource_id }, { availability_status: "ARCHIVED" });
+    await contribution_model.updateOne({ contribution_id: req.body.contribution_id }, { contribution_status: "REJECTED", remarks: req.body.remarks });
+
+    logger.info(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Contribution ${req.body.contribution_id} rejected successfully`);
     res.status(201).send({
-      message: "Contribution Rejected",
+      message: "Contribution Rejected Successfully",
     });
+    return;
   } catch (err) {
-    console.log("Error: Rejecting Contribution Failed", err);
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to reject contribution ${req.body.contribution_id}: ${err}`);
     res.status(401).send({
-      error: "Error: Rejecting Contribution Failed",
+      error: "Failed to Reject Contribution",
     });
   }
 };

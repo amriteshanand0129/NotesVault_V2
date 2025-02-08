@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getPendingContributions, acceptContribution } from "../api/resource.api.jsx";
+import { getPendingContributions, acceptContribution, rejectContribution } from "../api/resource.api.jsx";
 import { userContext } from "../context/userContext";
 
 const PendingContributionList = () => {
@@ -24,11 +24,22 @@ const PendingContributionList = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const response = await acceptContribution(accessToken, formData);
-    console.log(response);
     // if (response.success) {
-      const modal = document.getElementById(`myModal${constribution._id}`);
-      const modalInstance = bootstrap.Modal.getInstance(modal);
-      modalInstance.hide();
+    const modal = document.getElementById(`myModal${constribution._id}`);
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    modalInstance.hide();
+    // }
+    fetchPendingContributions();
+  };
+
+  const rejectContributionHandler = async (e, constribution) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const response = await rejectContribution(accessToken, formData);
+    // if (response.success) {
+    const modal = document.getElementById(`myModalReject${constribution._id}`);
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    modalInstance.hide();
     // }
     fetchPendingContributions();
   };
@@ -97,26 +108,26 @@ const PendingContributionList = () => {
                           <input type="hidden" name="resource_id" value={contribution.resource._id} />
                           <input type="hidden" name="contribution_id" value={contribution.contribution_id} />
                           <div className="form-group py-1">
-                            <label className="py-1">Contributed By</label>
+                            <label className="py-1 text-gray-600">Contributed By</label>
                             <input type="text" className="form-control" value={contribution.resource.contributer_name} readOnly />
                           </div>
                           <div className="form-group py-1">
-                            <label className="py-1">Subject Code</label>
-                            <input type="text" className="form-control" name="subject_code" defaultValue={contribution.resource.subject_code} />
+                            <label className="py-1 text-gray-600">Subject Code</label>
+                            <input type="text" className="form-control" name="subject_code" defaultValue={contribution.resource.subject_code} required />
                           </div>
                           <div className="form-group py-1">
-                            <label className="py-1">Subject Name</label>
-                            <input type="text" className="form-control" name="subject_name" defaultValue={contribution.resource.subject_name} />
+                            <label className="py-1 text-gray-600">Subject Name</label>
+                            <input type="text" className="form-control" name="subject_name" defaultValue={contribution.resource.subject_name} required />
                           </div>
                           <div className="form-group py-1">
-                            <label className="py-1">File Name</label>
-                            <input type="text" className="form-control" name="file_name" defaultValue={contribution.resource.file_name} />
+                            <label className="py-1 text-gray-600">File Name</label>
+                            <input type="text" className="form-control" name="file_name" defaultValue={contribution.resource.file_name} required />
                           </div>
                           <div className="form-group py-1">
-                            <label className="py-1">Description</label>
-                            <input type="text" className="form-control" name="description" defaultValue={contribution.resource.description} />
+                            <label className="py-1 text-gray-600">Description</label>
+                            <input type="text" className="form-control" name="description" defaultValue={contribution.resource.description} required />
                           </div>
-                          <div className="center-align-button pt-2 mx-auto">
+                          <div className="center-align-button pt-2">
                             <button type="submit" className="btn btn-success">
                               Accept
                             </button>
@@ -132,21 +143,22 @@ const PendingContributionList = () => {
                   <div className="modal-dialog">
                     <div className="modal-content">
                       <div className="modal-header">
-                        <h5 className="modal-title">Reject Contribution</h5>
+                        <h5 className="modal-title text-lg">Reject Contribution</h5>
                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
                       <div className="modal-body">
-                        <form action="/rejectContribution" method="post">
-                          <input type="hidden" name="_id" value={contribution._id} />
-                          <div className="form-group">
-                            <label>Contributed By</label>
-                            <input type="text" className="form-control" value={contribution.contributedBy} readOnly />
+                        <form onSubmit={(e) => rejectContributionHandler(e, contribution)}>
+                          <input type="hidden" name="resource_id" value={contribution.resource._id} />
+                          <input type="hidden" name="contribution_id" value={contribution.contribution_id} />
+                          <div className="form-group py-1">
+                            <label className="py-1 text-gray-600">Contributed By</label>
+                            <input type="text" className="form-control" value={contribution.resource.contributer_name} readOnly />
                           </div>
-                          <div className="form-group">
-                            <label>Reason</label>
-                            <input type="text" className="form-control" name="remarks" required />
+                          <div className="form-group py-1">
+                            <label className="py-1 text-gray-600">Reason</label>
+                            <input type="text" className="form-control" name="remarks" placeholder="Specify the reason for rejection" required />
                           </div>
-                          <div className="center-align-button">
+                          <div className="center-align-button pt-2">
                             <button type="submit" className="btn btn-danger">
                               Reject
                             </button>
