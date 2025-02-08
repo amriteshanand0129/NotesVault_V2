@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const logger = require("../logger");
 const mongoose = require("mongoose");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { PDFDocument, StandardFonts, rgb, degrees } = require("pdf-lib");
 
 // Database models
@@ -11,6 +11,7 @@ const user_model = require("../models/user.model");
 const subject_model = require("../models/subject.model");
 const resource_model = require("../models/resource.model");
 const contribution_model = require("../models/contribution.model");
+const axios = require("axios");
 
 // Configuring AWS S3
 const s3 = new S3Client({
@@ -128,8 +129,8 @@ const uploadResource = async (req, res) => {
       res.status(200).send({ message: "File uploaded successfully!" });
       logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: "${awsLocation}"`);
       return;
-    } 
-    
+    }
+
     // STUDENT CONTRIBUTION
     else if (req.user.user_type == "STUDENT") {
       const file_size = calculateFileSize(fs.statSync(file_path).size);
@@ -153,7 +154,7 @@ const uploadResource = async (req, res) => {
       const contribution = await contribution_model.create({
         contributer_id: req.user._id,
         contribution_id: contributionId,
-        resource_id: created._id,
+        resource: created._id,
         contribution_status: "PENDING",
       });
 
@@ -172,45 +173,61 @@ const uploadResource = async (req, res) => {
 
 // Accepting contribution controller for Admin
 const acceptContribution = async (req, res) => {
-  const user = req.user;
+  let tempFilePath = "",
+    watermarkedFilePath = "";
   try {
-    const file = await pending_resource_model.findOne({ _id: req.body._id });
-    const created = await resource_model.create({
-      contributerId: file.contributerId,
-      contributedBy: file.contributedBy,
-      uploadedOn: file.createdAt,
-      subject_code: req.body.subject_code,
-      subject_name: req.body.subject_name,
-      file_name: req.body.file_name,
-      description: req.body.description,
-      filebuffer: file.filebuffer,
-      filesize: file.filesize,
-    });
+    const resource = await resource_model.findOne({ _id: req.body.resource_id });
+
+    // Fetching, downloading and saving the file from S3
+    const response = await axios.get(resource.file_address, { responseType: "arraybuffer" });
+    const fileBuffer = Buffer.from(response.data, "binary");
+
+    const tempFileName = `${Date.now()}-${resource.file_name}.pdf`;
+    const tempFilePath = path.join("./uploads", tempFileName);
+    fs.writeFileSync(tempFilePath, fileBuffer);
+
+    const watermarkedFilePath = await applyWatermark(tempFilePath);
+
+    const awsResponse = await uploadToS3(tempFileName, watermarkedFilePath, "application/pdf");
+
+    // Deleting original contributed file from S3
+    const deleteParams = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: path.basename(resource.file_address),
+    };
     try {
-      const result = await approved_contributions_model.create({
-        contributerId: created.contributerId,
-        contributionId: created._id,
-        status: true,
-      });
+      await s3.send(new DeleteObjectCommand(deleteParams));
     } catch (err) {
-      console.log("Error while updating Approved Contributions list");
+      logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to delete unwatermarked file ${resource.file_address} from S3 while accepting contribution ${resource.contribution_id}: ${err}`);
     }
-    const result = await pending_resource_model.deleteOne({ _id: req.body._id });
-    if (result.deletedCount == 1) {
-      console.log("Pending Contribution List Updated");
-    } else {
-      console.log("Failed to update Pending Contribution List");
+
+    resource.subject_code = req.body.subject_code;
+    resource.subject_name = req.body.subject_name;
+    resource.file_name = req.body.file_name;
+    resource.description = req.body.description;
+    resource.file_size = calculateFileSize(fs.statSync(watermarkedFilePath).size);
+    resource.file_address = awsResponse.Location;
+    resource.availability_status = "LIVE";
+    await resource.save();
+
+    await addSubject(req.body.subject_code, req.body.subject_name);
+
+    try {
+      await contribution_model.updateOne({ contribution_id: req.body.contribution_id }, { contribution_status: "APPROVED" });
+    } catch (err) {
+      logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to update contribution status to APPROVED for contribution ${req.body.contribution_id}: ${err}`);
     }
-    console.log("Contribution Accepted Successfully");
-    res.status(201).send({
-      message: "Contribution Accepted Successfully",
-      redirectTo: "/",
-    });
+
+    logger.info(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Contribution ${req.body.contribution_id} accepted successfully`);
+    res.status(201).send({ message: "Contribution Accepted Successfully" });
   } catch (err) {
-    console.log("Error: Accepting Contribution Failed", err);
+    logger.error(`RESOURCE | ${req.user.user_type} | ${res.user.name} : Failed to accept contribution ${req.body.contribution_id}: ${err}`);
     res.status(401).send({
-      error: "Error: Accepting Contribution Failed",
+      error: "Failed to Accept Contribution",
     });
+  } finally {
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+    if (fs.existsSync(watermarkedFilePath)) fs.unlinkSync(watermarkedFilePath);
   }
 };
 
@@ -316,7 +333,7 @@ const deleteResource = async (req, res) => {
 
 module.exports = {
   uploadResource: uploadResource,
-  //   acceptContribution: acceptContribution,
-  //   rejectContribution: rejectContribution,
-  //   deleteResource: deleteResource,
+  acceptContribution: acceptContribution,
+  rejectContribution: rejectContribution,
+  deleteResource: deleteResource,
 };

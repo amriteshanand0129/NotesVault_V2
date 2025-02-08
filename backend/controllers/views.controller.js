@@ -46,9 +46,10 @@ const getFileDetails = async (req, res) => {
   }
 };
 
-getPendingContributions = async (req, res) => {
+// Pending Contributions fetcher
+const getPendingContributions = async (req, res) => {
   try {
-    const pending_contributions = await contribution_model.find({ status: "pending" }).populate("resource_id");
+    const pending_contributions = await contribution_model.find({ contribution_status: "PENDING" }).populate('resource');
     res.status(200).send(pending_contributions);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch pending contributions" });

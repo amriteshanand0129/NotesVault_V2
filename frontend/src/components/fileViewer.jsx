@@ -62,8 +62,8 @@ const FileViewer = () => {
       <SecondaryNavbar searchCallback={() => {}} />
       <div className="card sm:w-1/2 lg:max-w-sm m-auto">
         <div className="card-body">
-          <h3 className="card-title text-xl text-black ">{file.subject_code}</h3>
-          <p className="card-text">{file.subject_name}</p>
+          <h3 className="card-title text-xl text-black">{file.subject_code}</h3>
+          <p className="card-text text-black">{file.subject_name}</p>
         </div>
         <ul className="list-group list-group-flush">
           <li className="list-group-item">
@@ -78,12 +78,18 @@ const FileViewer = () => {
             <span className="resourceHeading text-gray-500">File Size: </span>
             {file.file_size}
           </li>
+          {file.contributer_name && (
+            <li className="list-group-item">
+              <span className="resourceHeading text-gray-500">Contributed By: </span>
+              {file.contributer_name}
+            </li>
+          )}
         </ul>
       </div>
       <button className="btn btn-primary mt-4" onClick={handleDownload}>
         Download File
       </button>
-      
+
       <div className="mt-4 ">
         <iframe src={file.file_address} className="lg:w-4/5 sm:w-full m-auto lg:h-[700px] border rounded-lg"></iframe>
       </div>

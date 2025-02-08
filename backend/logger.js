@@ -8,8 +8,11 @@ const logFormat = printf(({ level, message, timestamp }) => {
 
 // Create the logger instance
 const logger = createLogger({
-    level: "info", // Default log level
-    format: combine(timestamp(), logFormat),
+    // Default log level
+    format: combine(
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), 
+        logFormat
+    ),
     transports: [
         new transports.Console({ format: combine(colorize(), logFormat) }), // Console output
         

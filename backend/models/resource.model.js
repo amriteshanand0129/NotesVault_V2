@@ -20,7 +20,7 @@ const resourceSchema = mongoose.Schema(
       trim: true,
     },
     contribution_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       trim: true,
     },
     contributer_name: {

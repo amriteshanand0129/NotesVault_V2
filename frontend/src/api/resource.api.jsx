@@ -33,6 +33,28 @@ const getFileDetails = async (fileId) => {
   } catch (error) {
     return { data: null, error: "An error occurred while fetching file details." };
   }
-}
+};
 
-export { getSubjects, getSubjectFiles, getFileDetails };
+const getPendingContributions = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/getPendingContributions`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: "An error occurred while fetching pending contributions." };
+  }
+};
+
+const acceptContribution = async (accessToken, formData) => {
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/acceptContribution`, formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: "An error occurred while accepting contribution." };
+  }
+};
+
+export { getSubjects, getSubjectFiles, getFileDetails, getPendingContributions, acceptContribution };

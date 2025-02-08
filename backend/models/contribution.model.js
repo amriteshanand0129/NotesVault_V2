@@ -18,7 +18,7 @@ const contributionSchema = mongoose.Schema(
       enum: ["PENDING", "APPROVED", "REJECTED", "DELETED"],
       required: true,
     },
-    resource_id: {
+    resource: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Resources",
     },

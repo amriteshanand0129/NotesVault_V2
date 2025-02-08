@@ -69,7 +69,7 @@ const addUserData = async (req, res, next) => {
 
 const isAdmin = (req, res, next) => {
   try {
-    if (req.user.userType === "ADMIN") {
+    if (req.user.user_type === "ADMIN") {
       next();
     } else {
       res.status(403).send({ error: "Unauthorized Access: You are not authorized to access this endpoint" });
