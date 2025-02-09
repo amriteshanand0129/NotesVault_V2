@@ -57,12 +57,12 @@ const PendingContributionList = () => {
       </button>
 
       {view && (
-        <div className="pendingResources">
+        <div className="pendingResources flex flex-row flex-wrap m-4 gap-4 justify-center">
           {loading ? (
             <div>Loading...</div>
           ) : (
             pendingContributions.map((contribution) => (
-              <div className="card w-96 mb-4" key={contribution._id}>
+              <div className="card w-[400px] mb-4" key={contribution._id}>
                 <div className="card-body">
                   <h5 className="card-title text-black text-lg">{contribution.resource.subject_code}</h5>
                   <p className="card-text text-black text-lg">{contribution.resource.subject_name}</p>
@@ -93,7 +93,7 @@ const PendingContributionList = () => {
                     })}
                   </li>
                 </ul>
-                <iframe src={`${contribution.resource.file_address}`} frameBorder="0" title={`file-${contribution._id}`}></iframe>
+                <iframe className="h-[200px]" src={`${contribution.resource.file_address}`} frameBorder="0" title={`file-${contribution._id}`}></iframe>
 
                 {/* Accept Contribution Modal */}
                 <div className="modal fade" id={`myModal${contribution._id}`} tabIndex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -169,20 +169,20 @@ const PendingContributionList = () => {
                   </div>
                 </div>
 
-                <div className="card-footer">
-                  <button type="button" className="btn btn-outline-success" data-bs-toggle="modal" data-bs-target={`#myModal${contribution._id}`}>
+                <div className="card-footer flex flex-row flex-wrap justify-around">
+                  <button type="button" className="btn btn-outline-success m-2" data-bs-toggle="modal" data-bs-target={`#myModal${contribution._id}`}>
                     Accept Contribution
                   </button>
-                  <button type="button" className="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target={`#myModalReject${contribution._id}`}>
+                  <button type="button" className="btn btn-outline-danger m-2" data-bs-toggle="modal" data-bs-target={`#myModalReject${contribution._id}`}>
                     Reject Contribution
                   </button>
-                  <div className="card-body">
+                  {/* <div className="card-body"> */}
                     <a href={`/download_pendingfile/${contribution._id}`} download>
-                      <button type="button" className="btn btn-outline-info">
+                      <button type="button" className="btn btn-outline-info m-2">
                         Download File
                       </button>
                     </a>
-                  </div>
+                  {/* </div> */}
                 </div>
               </div>
             ))

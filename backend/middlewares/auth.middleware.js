@@ -15,7 +15,7 @@ const client = jwksClient({
 function getKey(header, callback) {
   client.getSigningKey(header.kid, (err, key) => {
     if (err) {
-      logger.error(`<AUTH>: Failed to Fetch Signing Key: ${err}`);
+      logger.error("AUTH | SERVER | Failed to fetch Signing Key: ", err);
       callback(err, null);
     } else {
       const signingKey = key.getPublicKey();
@@ -28,7 +28,7 @@ const validateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).send({ error: "Unauthenticated Access: You need to login to access this endpoint" });
+    return res.status(401).send({ error: "Unauthenticated Access: You need to be logged in to access this endpoint" });
   }
 
   try {
@@ -43,8 +43,7 @@ const validateToken = async (req, res, next) => {
       },
       (err, decoded) => {
         if (err) {
-          console.log("Token Validation Failed: ", err);
-          return res.status(401).send({ error: "Token Validation Failed" });
+          return res.status(401).send({ error: "Token Validation Failed, Try Logging in again." });
         } else {
           req.user = decoded;
           return next();
@@ -52,8 +51,7 @@ const validateToken = async (req, res, next) => {
       }
     );
   } catch (err) {
-    logger.error(`<AUTH>: Token Validation Failed: ${err}`);
-    res.status(400).send({ error: "Token Validation Failed" });
+    res.status(400).send({ error: "Token Validation Failed, Try Logging in again." });
   }
 };
 
@@ -61,7 +59,7 @@ const addUserData = async (req, res, next) => {
   try {
     req.user = await user_model.findOne({ auth0_user_id: req.user.sub });
   } catch (err) {
-    logger.error(`<AUTH>: Error fetching user data: ${err}`);
+    logger.error(`AUTH | Failed to fetch user ${req.user} data: ${err}`);
     return res.status(500).send({ error: "Error fetching user data" });
   }
   next();
@@ -75,7 +73,7 @@ const isAdmin = (req, res, next) => {
       res.status(403).send({ error: "Unauthorized Access: You are not authorized to access this endpoint" });
     }
   } catch (err) {
-    logger.error(`<AUTH>: Error while verifying ADMIN status: ${err}`);
+    logger.error(`AUTH | Failed to verify ADMIN status for ${req.user}: ${err}`);
     res.status(500).send({ error: "Error while verifying ADMIN status" });
   }
 };

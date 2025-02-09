@@ -127,7 +127,7 @@ const uploadResource = async (req, res) => {
       await addSubject(req.body.subject_code, req.body.subject_name);
 
       res.status(200).send({ message: "File uploaded successfully!" });
-      logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: "${awsLocation}"`);
+      logger.info(`RESOURCE | ${req.user.user_type} | ${req.user.name} : File uploaded successfully : "${awsLocation}"`);
       return;
     }
 
@@ -159,12 +159,12 @@ const uploadResource = async (req, res) => {
       });
 
       res.status(200).send({ message: "File uploaded successfully! You can check the status of your contribution in the profile tab" });
-      logger.info(`<RESOURCE>: File uploaded successfully by ${req.user.user_type} ${req.user.name}: ${awsResponse.Location}`);
+      logger.info(`RESOURCE | ${req.user.user_type} | ${req.user.name} : File contributed successfully: ${awsResponse.Location}`);
       return;
     }
   } catch (err) {
     res.status(500).send({ error: "Failed to upload file" });
-    logger.error(`<RESOURCE>: Failed to upload file by ${req.user.user_type} ${req.user.name}: ${err}`);
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to contribute file : ${err}`);
   } finally {
     if (fs.existsSync(file_path)) fs.unlinkSync(file_path);
     if (fs.existsSync(watermarkedFilePath)) fs.unlinkSync(watermarkedFilePath);

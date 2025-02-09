@@ -60,10 +60,10 @@ const FileViewer = () => {
   return (
     <div className="">
       <SecondaryNavbar searchCallback={() => {}} />
-      <div className="card sm:w-1/2 lg:max-w-sm m-auto">
+      <div className="fileDetailsCard card w-[380px] m-auto">
         <div className="card-body">
           <h3 className="card-title text-xl text-black">{file.subject_code}</h3>
-          <p className="card-text text-black">{file.subject_name}</p>
+          <p className="card-text text-lg text-black">{file.subject_name}</p>
         </div>
         <ul className="list-group list-group-flush">
           <li className="list-group-item">

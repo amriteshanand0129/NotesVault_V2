@@ -14,3 +14,9 @@
     padding-right: 14px !important;
   }
 }
+
+@media (max-width: 380px) {
+  .fileDetailsCard {
+    width: 90% !important;
+  }
+}

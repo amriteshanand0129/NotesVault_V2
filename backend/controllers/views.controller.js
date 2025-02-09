@@ -14,21 +14,21 @@ const getSubjects = async (req, res) => {
     res.status(200).send(subjects);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch Subjects" });
-    logger.error(`<VIEWS>: Failed to fetch subjects: ${err}`);
+    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch subjects: ${err}`);
   }
 };
 
 // Subject Files fetcher
 const getSubjectFiles = async (req, res) => {
   try {
-    const subject_files = await resource_model.find({ subject_code: req.params.subject_code });
+    const subject_files = await resource_model.find({ subject_code: req.params.subject_code, availability_status: "LIVE" });
     if (subject_files.length === 0) {
       return res.status(404).send({ error: "No Subjects found" });
     }
     res.status(200).send(subject_files);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch Subject Files" });
-    logger.error(`<VIEWS>: Failed to fetch subject files for ${req.params.subject_code}: ${err}`);
+    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch subject files for ${req.params.subject_code}: ${err}`);
   }
 };
 
@@ -36,13 +36,13 @@ const getSubjectFiles = async (req, res) => {
 const getFileDetails = async (req, res) => {
   try {
     const file = await resource_model.findById(req.params.file_id);
-    if (!file) {
+    if (!file || file.availability_status !== "LIVE") {
       return res.status(404).send({ error: "File not found" });
     }
     res.status(200).send(file);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch file details" });
-    logger.error(`<VIEWS>: Failed to fetch file details for ${req.params.file_id}: ${err}`);
+    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch file details for ${req.params.file_id}: ${err}`);
   }
 };
 
@@ -53,7 +53,7 @@ const getPendingContributions = async (req, res) => {
     res.status(200).send(pending_contributions);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch pending contributions" });
-    logger.error(`<VIEWS>: Failed to fetch pending contributions: ${err}`);
+    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch pending contributions: ${err}`);
   }
 };
 

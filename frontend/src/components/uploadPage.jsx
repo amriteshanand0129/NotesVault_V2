@@ -50,7 +50,6 @@ const ResourceUploadPage = () => {
       const result = response.data;
       setFormData({ subject_code: "", subject_name: "", file_name: "", description: "", fileInput: null });
       alert(result.message);
-      window.location.href = "/";
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data && error.response.data.error) {
@@ -62,7 +61,6 @@ const ResourceUploadPage = () => {
       setLoading(false);
     }
   };
-  console.log(user);
 
   return (
     <>

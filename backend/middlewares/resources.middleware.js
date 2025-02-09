@@ -30,7 +30,6 @@ const validateUploadForm = async (req, res, next) => {
     }
     next();
   } catch (err) {
-    logger.error(`<RESOURCE>: Error validating upload form: ${err}`);
     res.status(500).send({ error: "Error validating upload form" });
   }
 };
