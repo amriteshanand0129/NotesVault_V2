@@ -4,6 +4,7 @@ import { useBreadcrumb } from "../context/breadcrumbContext.jsx";
 import { userContext } from "../context/userContext.jsx";
 import SecondaryNavbar from "./secondaryNavbar.jsx";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useMessage } from "../context/messageContext";
 
 const SubjectCard = ({ subjectCode, subjectName, resourceCount }) => {
   return (
@@ -26,10 +27,15 @@ const Resources = () => {
   const [filteredSubjects, setFilteredSubjects] = useState([]);
   const { accessToken } = userContext();
   const { setBreadcrumb } = useBreadcrumb();
+  const { showMessage } = useMessage();
 
   useEffect(() => {
     const fetchSubjects = async () => {
       const subjects = await getSubjects(accessToken);
+      if(subjects.error) {
+        showMessage(subjects.error, "error");
+        return;
+      }
       setSubjects(subjects.data);
       setFilteredSubjects(subjects.data);
     };
@@ -50,7 +56,7 @@ const Resources = () => {
 
   return (
     <div>
-      <SecondaryNavbar searchCallback={handleSearch} message={`Subjects found: ${filteredSubjects.length}`} searchPlaceholder="Search by Subject Code/Name"/>
+      <SecondaryNavbar searchCallback={handleSearch} message={`Subjects found: ${filteredSubjects.length}`} searchPlaceholder="Search by Subject Code/Name" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
         {filteredSubjects.map((subject) => (
           <SubjectCard key={subject.subject_code} subjectCode={subject.subject_code} subjectName={subject.subject_name} resourceCount={subject.count} />

@@ -3,6 +3,7 @@ import { getFileDetails } from "../api/resource.api.jsx";
 import { useLocation, useParams } from "react-router-dom";
 import { useBreadcrumb } from "../context/breadcrumbContext";
 import SecondaryNavbar from "./secondaryNavbar";
+import { useMessage } from "../context/messageContext";
 
 const FileViewer = () => {
   const location = useLocation();
@@ -10,6 +11,7 @@ const FileViewer = () => {
   const [file, setFile] = useState(location.state?.file || null);
   const [loading, setLoading] = useState(!file);
   const { setBreadcrumb } = useBreadcrumb();
+  const { showMessage } = useMessage();
 
   useEffect(() => {
     if (!file) {
@@ -17,9 +19,13 @@ const FileViewer = () => {
         setLoading(true);
         try {
           const response = await getFileDetails(fileId);
+          if(response.error) {
+            showMessage(response.error, "error");
+            return;
+          }
           setFile(response.data);
         } catch (error) {
-          console.error("Error fetching file details:", error);
+          showMessage("Error fetching file!", "error");
         } finally {
           setLoading(false);
         }

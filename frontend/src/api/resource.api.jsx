@@ -17,9 +17,12 @@ const getSubjectFiles = async (accessToken, subjectCode) => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/subject_files/${subjectCode}`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       },
     });
+    if (response.error) {
+      return { data: null, error: response.data.error };
+    }
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: "An error occurred while fetching subject files." };

@@ -4,6 +4,8 @@ import { userContext } from "../context/userContext.jsx";
 import { getSubjectFiles } from "../api/resource.api.jsx";
 import { useBreadcrumb } from "../context/breadcrumbContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useMessage } from "../context/messageContext";
+
 
 const FileCard = ({ file }) => {
   const navigate = useNavigate();
@@ -33,10 +35,15 @@ const FilesList = () => {
   const [filteredFiles, setFilteredFiles] = useState([]);
   const { accessToken } = userContext();
   const { setBreadcrumb } = useBreadcrumb();
+  const { showMessage } = useMessage();
 
   useEffect(() =>  {
     const fetchFiles = async () => {
       const response = await getSubjectFiles(accessToken, subjectCode);
+      if(response.error) {
+        showMessage(response.error, "error");
+        return;
+      }
       setFiles(response.data);
       setFilteredFiles(response.data);
     };

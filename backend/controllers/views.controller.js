@@ -14,7 +14,7 @@ const getSubjects = async (req, res) => {
     res.status(200).send(subjects);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch Subjects" });
-    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch subjects: ${err}`);
+    logger.error(`VIEWS | : Failed to fetch subjects: ${err}`);
   }
 };
 
@@ -28,7 +28,7 @@ const getSubjectFiles = async (req, res) => {
     res.status(200).send(subject_files);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch Subject Files" });
-    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch subject files for ${req.params.subject_code}: ${err}`);
+    logger.error(`VIEWS | : Failed to fetch subject files for ${req.params.subject_code}: ${err}`);
   }
 };
 
@@ -42,7 +42,7 @@ const getFileDetails = async (req, res) => {
     res.status(200).send(file);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch file details" });
-    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch file details for ${req.params.file_id}: ${err}`);
+    logger.error(`VIEWS | : Failed to fetch file details for ${req.params.file_id}: ${err}`);
   }
 };
 

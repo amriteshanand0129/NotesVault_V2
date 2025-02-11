@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { UserProvider } from "./context/userContext.jsx";
 import { BreadcrumbProvider } from "./context/breadcrumbContext.jsx";
+import { MessageProvider } from "./context/messageContext";
+import MessageBar from "./components/messageBar";
 
 createRoot(document.getElementById("root")).render(
   <Auth0Provider
@@ -16,7 +18,10 @@ createRoot(document.getElementById("root")).render(
   >
     <UserProvider>
       <BreadcrumbProvider>
-        <App />
+        <MessageProvider>
+          <MessageBar />
+          <App />
+        </MessageProvider>
       </BreadcrumbProvider>
     </UserProvider>
   </Auth0Provider>

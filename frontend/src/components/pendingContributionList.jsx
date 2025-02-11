@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { getPendingContributions, acceptContribution, rejectContribution } from "../api/resource.api.jsx";
 import { userContext } from "../context/userContext";
+import { useMessage } from "../context/messageContext";
 
 const PendingContributionList = () => {
   const [pendingContributions, setPendingContributions] = useState([]);
   const [view, setView] = useState(false);
   const [loading, setLoading] = useState(false);
   const { accessToken } = userContext();
+  const { showMessage } = useMessage();
 
   const fetchPendingContributions = async () => {
     setLoading(true);
     const { data, error } = await getPendingContributions();
     if (error) {
-      console.error(error);
+      showMessage(error, "error");
       setLoading(false);
       return;
     }
@@ -44,20 +46,35 @@ const PendingContributionList = () => {
     fetchPendingContributions();
   };
 
-  return (
-    <>
-      <button
-        className="btn btn-primary"
-        onClick={() => {
-          setView(!view);
-          fetchPendingContributions();
-        }}
-      >
-        {view ? "Hide Pending Contributions" : "Show Pending Contributions"}
-      </button>
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      const { data, error } = await getPendingContributions();
+      if (error) {
+        console.error(error);
+        return;
+      }
+      setPendingContributions(data);
+    };
 
+    fetchPendingCount();
+  }, []);
+  return (
+    <div className="border-2 rounded-2xl m-2">
+      
+      <div className="pendingContributionsTab flex flex-row flex-wrap gap-2 justify-between items-center p-4">
+        <div className="text-left">You have {pendingContributions.length} contribution(s) waiting for approval.</div>
+        <button
+          className="btn btn-primary min-w-[200px]"
+          onClick={() => {
+            setView(!view);
+          }}
+          disabled={pendingContributions.length === 0}
+        >
+          {view ? "Hide Pending Contributions" : "Show Pending Contributions"}
+        </button>
+      </div>
       {view && (
-        <div className="pendingResources flex flex-row flex-wrap m-4 gap-4 justify-center">
+        <div className="flex flex-row flex-wrap border-t-2 p-2 gap-4 justify-center">
           {loading ? (
             <div>Loading...</div>
           ) : (
@@ -177,11 +194,11 @@ const PendingContributionList = () => {
                     Reject Contribution
                   </button>
                   {/* <div className="card-body"> */}
-                    <a href={`/download_pendingfile/${contribution._id}`} download>
-                      <button type="button" className="btn btn-outline-info m-2">
-                        Download File
-                      </button>
-                    </a>
+                  <a href={`/download_pendingfile/${contribution._id}`} download>
+                    <button type="button" className="btn btn-outline-info m-2">
+                      Download File
+                    </button>
+                  </a>
                   {/* </div> */}
                 </div>
               </div>
@@ -189,7 +206,7 @@ const PendingContributionList = () => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

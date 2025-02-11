@@ -1,9 +1,14 @@
 import axios from "axios";
-import React, { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import React, { useEffect, useState } from "react";
+import { useMessage } from "../context/messageContext";
 import { userContext } from "../context/userContext.jsx";
 
 const ResourceUploadPage = () => {
-  const { user, accessToken, isAuthenticated } = userContext();
+  const { showMessage } = useMessage();
+  const { user, accessToken, isLoading, isAuthenticated } = userContext();
+  const { loginWithRedirect } = useAuth0();
+
   const [formData, setFormData] = useState({
     subject_code: "",
     subject_name: "",
@@ -47,15 +52,14 @@ const ResourceUploadPage = () => {
         },
       });
 
-      const result = response.data;
+      document.getElementById("fileInput").value = "";
       setFormData({ subject_code: "", subject_name: "", file_name: "", description: "", fileInput: null });
-      alert(result.message);
+      showMessage(response.data.message, "success");
     } catch (error) {
-      console.log(error);
       if (error.response && error.response.data && error.response.data.error) {
-        alert(error.response.data.error);
+        showMessage(error.response.data.error, "error");
       } else {
-        alert("An error occurred while uploading the resource.");
+        showMessage("Failed to upload resource !", "error");
       }
     } finally {
       setLoading(false);
@@ -65,7 +69,7 @@ const ResourceUploadPage = () => {
   return (
     <>
       <div className="form-container max-w-lg mx-auto my-10 lg:px-8 sm:px-2 py-2 pb-4 sm:px-2 border-2 border-gray-300 rounded-lg bg-white">
-        <div className="text-lg p-3 text-center border-b border-gray-400 mb-8">{user.userType === "ADMIN" ? <h4>Upload Resource</h4> : <h4>Contribute Resource</h4>}</div>
+        <div className="text-lg p-3 text-center border-b border-gray-400 mb-8">{user?.userType === "ADMIN" ? <h4>Upload Resource</h4> : <h4>Contribute Resource</h4>}</div>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="subject_code" className="form-label">
@@ -96,9 +100,15 @@ const ResourceUploadPage = () => {
             <span className="form-text">Only PDF Files are allowed</span>
           </div>
           <div className="text-center mt-10">
-            <button type="submit" className="btn btn-dark w-full sm:w-auto" disabled={loading}>
-              {loading ? "Uploading..." : "Upload"}
-            </button>
+            {isAuthenticated ? (
+              <button type="submit" className="btn btn-dark w-full sm:w-auto" disabled={loading}>
+                {loading ? "Uploading..." : "Upload"}
+              </button>
+            ) : (
+              <div onClick={() => loginWithRedirect()} className="btn btn-dark w-full sm:w-auto">
+                Login before making a contribution
+              </div>
+            )}
           </div>
         </form>
       </div>
