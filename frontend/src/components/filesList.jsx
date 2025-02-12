@@ -6,7 +6,6 @@ import { useBreadcrumb } from "../context/breadcrumbContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useMessage } from "../context/messageContext";
 
-
 const FileCard = ({ file }) => {
   const navigate = useNavigate();
 
@@ -37,10 +36,10 @@ const FilesList = () => {
   const { setBreadcrumb } = useBreadcrumb();
   const { showMessage } = useMessage();
 
-  useEffect(() =>  {
+  useEffect(() => {
     const fetchFiles = async () => {
       const response = await getSubjectFiles(accessToken, subjectCode);
-      if(response.error) {
+      if (response.error) {
         showMessage(response.error, "error");
         return;
       }
@@ -56,7 +55,7 @@ const FilesList = () => {
   }, [accessToken, subjectCode, setBreadcrumb]);
 
   useEffect(() => {
-    setBreadcrumb([ 
+    setBreadcrumb([
       { name: "Dashboard", link: "/" },
       { name: "Resources", link: "/resources" },
       { name: files[0]?.subject_name, link: `/resources/${subjectCode}` },

@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { getFileDetails } from "../api/resource.api.jsx";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { useBreadcrumb } from "../context/breadcrumbContext";
 import SecondaryNavbar from "./secondaryNavbar";
 import { useMessage } from "../context/messageContext";
+import { userContext } from "../context/userContext.jsx";
+import axios from "axios";
 
 const FileViewer = () => {
   const location = useLocation();
@@ -12,6 +14,8 @@ const FileViewer = () => {
   const [loading, setLoading] = useState(!file);
   const { setBreadcrumb } = useBreadcrumb();
   const { showMessage } = useMessage();
+  const { user, accessToken } = userContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!file) {
@@ -19,7 +23,7 @@ const FileViewer = () => {
         setLoading(true);
         try {
           const response = await getFileDetails(fileId);
-          if(response.error) {
+          if (response.error) {
             showMessage(response.error, "error");
             return;
           }
@@ -63,6 +67,21 @@ const FileViewer = () => {
     }
   };
 
+  const deleteFile = async () => {
+    try {
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/deleteResource/${file._id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      showMessage(response.data.message);
+      navigate("/resources");
+    } catch (error) {
+      console.log(error);
+      showMessage("Failed to delete file", "error");
+    }
+  };
+
   return (
     <div className="">
       <SecondaryNavbar searchCallback={() => {}} />
@@ -95,6 +114,11 @@ const FileViewer = () => {
       <button className="btn btn-primary mt-4" onClick={handleDownload}>
         Download File
       </button>
+      {user?.userType === "ADMIN" && (
+        <button className="btn btn-danger mt-4" onClick={deleteFile}>
+          Delete File
+        </button>
+      )}
 
       <div className="mt-4 ">
         <iframe src={file.file_address} className="lg:w-4/5 sm:w-full m-auto lg:h-[700px] border rounded-lg"></iframe>

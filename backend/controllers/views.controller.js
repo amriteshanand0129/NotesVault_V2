@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const subject_model = require("../models/subject.model");
 const resource_model = require("../models/resource.model");
 const contribution_model = require("../models/contribution.model");
+const user_model = require("../models/user.model");
 
 // Subject List fetcher
 const getSubjects = async (req, res) => {
@@ -49,7 +50,7 @@ const getFileDetails = async (req, res) => {
 // Pending Contributions fetcher
 const getPendingContributions = async (req, res) => {
   try {
-    const pending_contributions = await contribution_model.find({ contribution_status: "PENDING" }).populate('resource');
+    const pending_contributions = await contribution_model.find({ contribution_status: "PENDING" }).populate("resource");
     res.status(200).send(pending_contributions);
   } catch (err) {
     res.status(500).send({ error: "Failed to fetch pending contributions" });
@@ -57,9 +58,54 @@ const getPendingContributions = async (req, res) => {
   }
 };
 
+const getStats = async (req, res) => {
+  let totalUsers = 0, totalSubjects = 0, totalResources = 0, totalContributions = 0;
+  try {
+    totalUsers = await user_model.countDocuments();
+  } catch (err) {
+    logger.error(`VIEWS | : Failed to fetch user statistics: ${err}`);
+  }
+  try {
+    totalContributions = await contribution_model.countDocuments();
+  } catch (err) {
+    logger.error(`VIEWS | : Failed to fetch user statistics: ${err}`);
+  }
+  try {
+    totalSubjects = await subject_model.countDocuments();
+  } catch (err) {
+    logger.error(`VIEWS | : Failed to fetch user statistics: ${err}`);
+  }
+  try {
+    const subjects = await subject_model.find();
+    totalResources = subjects.reduce((sum, subject) => sum + (subject.count || 0), 0);
+  } catch (err) {
+    logger.error(`VIEWS | : Failed to fetch resource statistics: ${err}`);
+  }
+  const response = [
+    {
+      name: "Registered Users",
+      value: totalUsers-1
+    },
+    {
+      name: "Subjects",
+      value: totalSubjects-1
+    },
+    {
+      name: "Resources",
+      value: totalResources-1
+    },
+    {
+      name: "Contributions made",
+      value: totalContributions-1
+    }
+  ]
+  res.status(201).send(response);
+};
+
 module.exports = {
   getSubjects: getSubjects,
   getSubjectFiles: getSubjectFiles,
   getFileDetails: getFileDetails,
   getPendingContributions: getPendingContributions,
+  getStats: getStats,
 };

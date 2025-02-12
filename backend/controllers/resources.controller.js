@@ -252,31 +252,38 @@ const rejectContribution = async (req, res) => {
 
 // Resource deletion controller for Admin
 const deleteResource = async (req, res) => {
-  const id = req.params.id;
+  const resource_id = req.params.id;
   try {
-    const file = await resource_model.findOne({ _id: id });
-    const subjectname = file.subject_name;
-    if (file.contributerId) {
-      const idObject = new mongoose.Types.ObjectId(id);
-      const updation = await approved_contributions_model.updateOne(
-        { contributionId: idObject },
+    const file = await resource_model.findOne({ _id: resource_id });
+    const subject_code = file.subject_code;
+    if (file.contribution_id) {
+      const contribution_id = file.contribution_id;
+      const updation = await contribution_model.updateOne(
+        { contribution_id: contribution_id },
         {
-          status: false,
-          details: {
-            subject_name: file.subject_name,
-            subject_code: file.subject_code,
-            file_name: file.file_name,
-            description: file.description,
-            uploadedOn: file.uploadedOn,
-          },
+          contribution_status: "DELETED",
         }
       );
       if (updation.modifiedCount == 1) {
-        const result = await resource_model.deleteOne({ _id: id });
+        const result = await resource_model.deleteOne({ _id: resource_id });
         if (result.deletedCount == 1) {
-          res.status(201).send({
+          const deleteParams = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: path.basename(resource.file_address),
+          };
+          try {
+            await s3.send(new DeleteObjectCommand(deleteParams));
+          } catch (err) {
+            logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete file ${resource.file_address} from S3 while deleting resource ${resource.contribution_id}: ${err}`);
+          }
+          await subject_model.updateOne(
+            {
+              subject_code: subject_code,
+            },
+            { $inc: { count: -1 } }
+          );
+          res.status(200).send({
             message: "Resource Deleted",
-            redirectTo: "/subject_catalog/subject/" + subjectname,
           });
         } else {
           await approved_contributions_model.updateOne(
@@ -285,27 +292,24 @@ const deleteResource = async (req, res) => {
               status: true,
             }
           );
-          console.log("Failed to delete Resource");
+          logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete resource with id: ${reosurce_id}`);
           res.status(501).send({
             error: "Failed to delete Resource",
           });
         }
       } else {
-        console.log("Failed to modify Approved Contribution List");
+        logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to modify Contribution Status`);
         res.status(501).send({
-          error: "Failed to modify Contribution List",
+          error: "Failed to delete Resource",
         });
       }
     } else {
-      const result = await resource_model.deleteOne({ _id: id });
+      const result = await resource_model.deleteOne({ _id: resource_id });
       if (result.deletedCount == 1) {
-        console.log("Resource Deleted");
         res.status(201).send({
-          message: "Resource Deleted",
-          redirectTo: "/subject_catalog/subject/" + subjectname,
+          message: "Resource Deleted Successfully!",
         });
       } else {
-        console.log("Failed to delete Resource");
         res.status(501).send({
           error: "Failed to delete Resource",
         });
