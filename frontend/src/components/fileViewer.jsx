@@ -47,26 +47,6 @@ const FileViewer = () => {
   if (loading) return <p>Loading...</p>;
   if (!file) return <p>File not found.</p>;
 
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/getSignedUrl?fileName=${file.file_name}`);
-      const data = await response.json();
-
-      if (data.url) {
-        const link = document.createElement("a");
-        link.href = data.url;
-        link.download = file.file_name; // Sets proper file name
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        console.error("Failed to get download URL");
-      }
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
-  };
-
   const deleteFile = async () => {
     try {
       const response = await axios.delete(`${import.meta.env.VITE_API_URL}/deleteResource/${file._id}`, {
@@ -111,9 +91,7 @@ const FileViewer = () => {
           )}
         </ul>
       </div>
-      <button className="btn btn-primary mt-4" onClick={handleDownload}>
-        Download File
-      </button>
+
       {user?.userType === "ADMIN" && (
         <button className="btn btn-danger mt-4" onClick={deleteFile}>
           Delete File

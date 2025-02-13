@@ -12,7 +12,6 @@ const navigationItems = [
   { name: "Dashboard", href: "/" },
   { name: "Resources", href: "/resources" },
   { name: "Contribute", href: "/upload_resource" },
-  { name: "Quizzes", href: "#" },
 ];
 
 function classNames(...classes) {
