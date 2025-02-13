@@ -1,5 +1,13 @@
-// Dependencies
+const fs = require("fs");
+const path = require("path");
 const multer = require("multer");
+
+// Ensure 'uploads' directory exists
+const uploadDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("✅ 'uploads' directory created.");
+}
 
 // Middlewares and Controllers
 const auth_middleware = require("../middlewares/auth.middleware");
@@ -8,7 +16,7 @@ const resource_middleware = require("../middlewares/resources.middleware");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    return cb(null, "./uploads");
+    return cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     return cb(null, `${Date.now()}-${file.originalname}`);
@@ -30,5 +38,5 @@ module.exports = (app) => {
   app.post("/upload", [auth_middleware.validateToken, auth_middleware.addUserData, upload.single("fileInput"), resource_middleware.validateUploadForm, multerErrorHandler], resource_controller.uploadResource);
   app.post("/acceptContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.acceptContribution);
   app.post("/rejectContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.rejectContribution);
-    app.delete("/deleteResource/:id", [auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.deleteResource);
+  app.delete("/deleteResource/:id", [auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.deleteResource);
 };
