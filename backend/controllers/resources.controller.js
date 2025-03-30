@@ -250,73 +250,93 @@ const rejectContribution = async (req, res) => {
   }
 };
 
+// Deleting resource from S3
+const deleteFromS3 = async (file) => {
+  const file_address = file.file_address.replace("%20", " ");
+  const deleteParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: path.basename(file_address),
+  };
+  try {
+    const response = await s3.send(new DeleteObjectCommand(deleteParams));
+  } catch (err) {
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete file ${file.file_address} from S3 while deleting resource ${file.contribution_id}: ${err}`);
+  }
+};
+
 // Resource deletion controller for Admin
 const deleteResource = async (req, res) => {
   const resource_id = req.params.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const file = await resource_model.findOne({ _id: resource_id });
+    const file = await resource_model.findOne({ _id: resource_id }).session(session); 
     const subject_code = file.subject_code;
     if (file.contribution_id) {
-      const contribution_id = file.contribution_id;
-      const updation = await contribution_model.updateOne(
-        { contribution_id: contribution_id },
-        {
-          contribution_status: "DELETED",
-        }
-      );
-      if (updation.modifiedCount == 1) {
-        const result = await resource_model.deleteOne({ _id: resource_id });
-        if (result.deletedCount == 1) {
-          const deleteParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: path.basename(resource.file_address),
-          };
-          try {
-            await s3.send(new DeleteObjectCommand(deleteParams));
-          } catch (err) {
-            logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete file ${resource.file_address} from S3 while deleting resource ${resource.contribution_id}: ${err}`);
-          }
-          await subject_model.updateOne(
-            {
-              subject_code: subject_code,
-            },
-            { $inc: { count: -1 } }
-          );
-          res.status(200).send({
-            message: "Resource Deleted",
-          });
-        } else {
-          await approved_contributions_model.updateOne(
-            { contributionId: idObject },
-            {
-              status: true,
-            }
-          );
-          logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete resource with id: ${reosurce_id}`);
-          res.status(501).send({
-            error: "Failed to delete Resource",
-          });
-        }
-      } else {
-        logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to modify Contribution Status`);
-        res.status(501).send({
-          error: "Failed to delete Resource",
-        });
-      }
-    } else {
-      const result = await resource_model.deleteOne({ _id: resource_id });
-      if (result.deletedCount == 1) {
-        res.status(201).send({
-          message: "Resource Deleted Successfully!",
-        });
-      } else {
-        res.status(501).send({
+      try {
+        const updation = await contribution_model.updateOne(
+          { contribution_id: file.contribution_id },
+          {
+            contribution_status: "DELETED",
+          },
+          { session }
+        );
+      } catch (err) {
+        session.abortTransaction();
+        session.endSession();
+        logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to update contribution status to DELETED for contribution ${file.contribution_id}: ${err}`);
+        return res.status(401).send({
           error: "Failed to delete Resource",
         });
       }
     }
+    try {
+      const updation = await resource_model.updateOne(
+        { _id: resource_id },
+        {
+          availability_status: "ARCHIVED",
+        },
+        { session }
+      );
+    } catch (err) {
+      session.abortTransaction();
+      session.endSession();
+      logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to update resource status to ARCHIVED with id: ${resource_id}: ${err}`);
+      return res.status(401).send({
+        error: "Failed to delete Resource",
+      });
+    }
+    try {
+      const subject = await subject_model.findOne({ subject_code: subject_code }).session(session);
+      if (subject.count == 1) {
+        const updation= await subject_model.deleteOne({ subject_code: subject_code }, { session });
+      } else {
+        const updation = await subject_model.updateOne(
+          {
+            subject_code: subject_code,
+          },
+          { $inc: { count: -1 } },
+          { session }
+        );
+      }
+    } catch (err) {
+      session.abortTransaction();
+      session.endSession();
+      logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to update subject count for subject code: ${subject_code}: ${err}`);
+      return res.status(401).send({
+        error: "Failed to delete Resource",
+      });
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    res.status(200).send({
+      message: "Resource Deleted Successfully",
+    });
   } catch (error) {
-    console.log("Failed to delete Resource", error);
+    session.abortTransaction();
+    session.endSession();
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to delete resource with id: ${resource_id}: ${error}`);
     res.status(501).send({
       error: "Failed to delete Resource",
     });
