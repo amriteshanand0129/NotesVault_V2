@@ -348,9 +348,29 @@ const deleteResource = async (req, res) => {
   }
 };
 
+const updateResource = async (req, res) => {
+  const resource_id = req.body.resource_id;
+  try {
+    const file = await resource_model.findOne({ _id: resource_id });
+    if (!file) {
+      return res.status(404).send({ error: "Resource not found" });
+    }
+    file.subject_code = req.body.subject_code;
+    file.subject_name = req.body.subject_name;
+    file.file_name = req.body.file_name;
+    file.description = req.body.description;
+    await file.save();
+    res.status(200).send({ message: "Resource updated successfully" });
+  } catch (error) {
+    logger.error(`RESOURCE | ${req.user.user_type} | ${req.user.name} : Failed to update resource with id: ${resource_id}: ${error}`);
+    res.status(500).send({ error: "Failed to update resource" });
+  }
+}
+
 module.exports = {
   uploadResource: uploadResource,
   acceptContribution: acceptContribution,
   rejectContribution: rejectContribution,
   deleteResource: deleteResource,
+  updateResource: updateResource,
 };

@@ -34,8 +34,31 @@ const validateUploadForm = async (req, res, next) => {
   }
 };
 
+// Middleware to validate the update form
+const validateUpdateForm = async (req, res, next) => {
+  try {
+    if (!req.body.subject_code) {
+      return res.status(400).send({ error: "Subject code is required!" });
+    }
+    if (!req.body.subject_name) {
+      return res.status(400).send({ error: "Subject name is required!" });
+    }
+    if (!req.body.file_name) {
+      return res.status(400).send({ error: "File name is required!" });
+    }
+    if (!req.body.description) {
+      return res.status(400).send({ error: "Description is required!" });
+    }
+    next();
+  } catch (err) {
+    logger.error("Error validating update form", err);
+    res.status(500).send({ error: "Error validating update form" });
+  }
+};
+
 const resource_middleware = {
   validateUploadForm: validateUploadForm,
+  validateUpdateForm: validateUpdateForm,
 };
 
 module.exports = resource_middleware;

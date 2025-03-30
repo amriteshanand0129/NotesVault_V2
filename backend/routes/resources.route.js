@@ -39,4 +39,5 @@ module.exports = (app) => {
   app.post("/acceptContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.acceptContribution);
   app.post("/rejectContribution", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.rejectContribution);
   app.delete("/deleteResource/:id", [auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin], resource_controller.deleteResource);
+  app.put("/updateResource", [upload.none(), auth_middleware.validateToken, auth_middleware.addUserData, auth_middleware.isAdmin, resource_middleware.validateUpdateForm], resource_controller.updateResource);
 };
