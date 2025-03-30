@@ -54,6 +54,11 @@ const FileViewer = () => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      document.getElementById(`myModal${fileId}`).classList.remove("show");
+      document.body.classList.remove("modal-open");
+      document.body.style = "";
+      const backdrop = document.querySelector(".modal-backdrop");
+      if (backdrop) backdrop.remove();
       showMessage(response.data.message);
       navigate("/resources");
     } catch (error) {
@@ -64,6 +69,35 @@ const FileViewer = () => {
 
   return (
     <div className="">
+      {/* {user?.userType === "ADMIN" && ( */}
+      <div className="modal fade" id={`myModal${fileId}`} tabIndex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title text-lg">Delete Resource</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  deleteFile();
+                }}
+              >
+                <div className="form-group py-1">
+                  <label className="py-1 text-gray-600">Are you sure, you want to delete this resource ?</label>
+                </div>
+                <div className="center-align-button pt-2 mt-2">
+                  <button type="submit" className="btn btn-danger">
+                    Yes, Delete this resource
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <SecondaryNavbar searchCallback={() => {}} />
       <div className="fileDetailsCard card w-[380px] m-auto">
         <div className="card-body">
@@ -93,9 +127,14 @@ const FileViewer = () => {
       </div>
 
       {user?.userType === "ADMIN" && (
-        <button className="btn btn-danger mt-4" onClick={deleteFile}>
-          Delete File
-        </button>
+        <div className="mx-auto w-[20%] flex flex-row items-center justify-between">
+          <button type="button" className="btn mt-4 btn-danger" data-bs-toggle="modal" data-bs-target={`#myModal${fileId}`}>
+            Delete File
+          </button>
+          <button className="btn btn-warning mt-4 text-white" onClick={deleteFile}>
+            Update File
+          </button>
+        </div>
       )}
 
       <div className="mt-4 ">

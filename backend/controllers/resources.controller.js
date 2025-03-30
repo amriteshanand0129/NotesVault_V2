@@ -273,7 +273,9 @@ const deleteResource = async (req, res) => {
   try {
     const file = await resource_model.findOne({ _id: resource_id }).session(session); 
     const subject_code = file.subject_code;
+    let delete_file_from_S3 = true;
     if (file.contribution_id) {
+      delete_file_from_S3 = false;
       try {
         const updation = await contribution_model.updateOne(
           { contribution_id: file.contribution_id },
@@ -327,6 +329,9 @@ const deleteResource = async (req, res) => {
       return res.status(401).send({
         error: "Failed to delete Resource",
       });
+    }
+    if (delete_file_from_S3) {
+      await deleteFromS3(file);
     }
     await session.commitTransaction();
     await session.endSession();
