@@ -207,10 +207,10 @@ const FileViewer = () => {
       {user?.userType === "ADMIN" && (
         <div className="mx-auto w-[20%] flex flex-row items-center justify-between">
           <button type="button" className="btn mt-4 btn-danger" data-bs-toggle="modal" data-bs-target={`#myDeleteModal${fileId}`}>
-            Delete File
+            Delete Resource
           </button>
           <button type="button" className="btn mt-4 btn-warning text-white" data-bs-toggle="modal" data-bs-target={`#myUpdateModal${fileId}`}>
-            Update Resource
+            Edit Resource
           </button>
         </div>
       )}

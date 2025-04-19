@@ -5,6 +5,7 @@ import FilesList from "./components/filesList.jsx";
 import Resources from "./components/resources.jsx";
 import FileViewer from "./components/fileViewer.jsx";
 import { Homepage } from "./components/homepage.jsx";
+import Profile from "./components/profile.jsx";
 import ResourceUploadPage from "./components/uploadPage.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -18,7 +19,7 @@ function App() {
         <Route path="/resources/:subjectCode" element={<FilesList />} />
         <Route path="/resources/:subjectCode/:fileId" element={<FileViewer />} />
         <Route path="/upload_resource" element={<ResourceUploadPage />} />
-        <Route path="/profile" element={<Homepage />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

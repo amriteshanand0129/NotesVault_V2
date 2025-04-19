@@ -102,10 +102,30 @@ const getStats = async (req, res) => {
   res.status(201).send(response);
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const user = await user_model.findById(req.user._id);
+    if (!user) {
+      return res.status(404).send({ error: "User not found" });
+    }
+    const contributions = await contribution_model.find({ contributer_id: req.user._id });
+    const user_profile = {
+      name : user.name,
+      email : user.email,
+      contributions : contributions
+    }
+    res.status(200).send(user_profile);
+  } catch (err) {
+    res.status(500).send({ error: "Failed to fetch user profile" });
+    logger.error(`VIEWS | ${req.user.user_type} | ${req.user.name} : Failed to fetch user profile: ${err}`);
+  }
+}
+
 module.exports = {
   getSubjects: getSubjects,
   getSubjectFiles: getSubjectFiles,
   getFileDetails: getFileDetails,
   getPendingContributions: getPendingContributions,
   getStats: getStats,
+  getProfile: getProfile
 };
