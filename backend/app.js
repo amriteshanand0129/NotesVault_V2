@@ -5,7 +5,6 @@ const chalk = require("chalk");
 const express = require("express");
 const mongoose = require("mongoose");
 
-const auth_middleware = require("./middlewares/auth.middleware");
 
 // Configurations
 require("dotenv").config();
@@ -35,7 +34,7 @@ db.once("open", () => {
   console.log("Database Connection:", success("SUCCESS"));
 });
 
-// app.use(auth_middleware.validateToken);
+require("./routes/auth.route")(app);
 require("./routes/resources.route")(app);
 require("./routes/views.route")(app);
 

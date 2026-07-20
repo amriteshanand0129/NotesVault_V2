@@ -1,28 +1,12 @@
 // Dependencies
 const jwt = require("jsonwebtoken");
 const logger = require("../logger");
-const jwksClient = require("jwks-rsa");
 
 // Database models
 const user_model = require("../models/user.model");
 
 // Configurations
 require("dotenv").config();
-const client = jwksClient({
-  jwksUri: process.env.SIGNING_KEY_URL,
-});
-
-function getKey(header, callback) {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      logger.error("AUTH | SERVER | Failed to fetch Signing Key: ", err);
-      callback(err, null);
-    } else {
-      const signingKey = key.getPublicKey();
-      callback(null, signingKey);
-    }
-  });
-}
 
 const validateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -33,33 +17,24 @@ const validateToken = async (req, res, next) => {
 
   try {
     const token = authHeader.split(" ")[1];
-    jwt.verify(
-      token,
-      getKey,
-      {
-        audience: process.env.AUDIENCE,
-        issuer: process.env.ISSUER,
-        algorithms: ["RS256"],
-      },
-      (err, decoded) => {
-        if (err) {
-          return res.status(401).send({ error: "Token Validation Failed, Try Logging in again." });
-        } else {
-          req.user = decoded;
-          return next();
-        }
-      }
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+    req.user = decoded;
+    return next();
   } catch (err) {
-    res.status(400).send({ error: "Token Validation Failed, Try Logging in again." });
+    logger.error(`AUTH | Token validation failed: ${err.message}`);
+    return res.status(401).send({ error: "Token validation failed. Please log in again." });
   }
 };
 
 const addUserData = async (req, res, next) => {
   try {
-    req.user = await user_model.findOne({ auth0_user_id: req.user.sub });
+    const user = await user_model.findById(req.user.sub).select("-password");
+    if (!user) {
+      return res.status(401).send({ error: "User account not found. Please register again." });
+    }
+    req.user = user;
   } catch (err) {
-    logger.error(`AUTH | Failed to fetch user ${req.user} data: ${err}`);
+    logger.error(`AUTH | Failed to fetch user data for sub ${req.user.sub}: ${err}`);
     return res.status(500).send({ error: "Error fetching user data" });
   }
   next();

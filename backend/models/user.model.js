@@ -2,13 +2,9 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    auth0_user_id: {
+    password: {
       type: String,
       required: true,
-      trim: true,
-      unique: true,
-      immutable: true,
-      index: true,
     },
     name: {
       type: String,
@@ -19,6 +15,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
+      index: true,
     },
     user_type: {
       type: String,

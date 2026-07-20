@@ -38,9 +38,13 @@ const getFileDetails = async (fileId) => {
   }
 };
 
-const getPendingContributions = async () => {
+const getPendingContributions = async (accessToken) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/getPendingContributions`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/getPendingContributions`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: "An error occurred while fetching pending contributions." };

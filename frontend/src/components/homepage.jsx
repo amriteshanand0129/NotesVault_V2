@@ -6,12 +6,12 @@ import Heading from "./heading.jsx";
 import ResourceStats from "./resourceStats.jsx";
 
 export const Homepage = () => {
-  const { user, accessToken, isAuthenticated } = userContext();
+  const { user, accessToken, isAuthenticated, isLoading } = userContext();
 
   return (
     <>
       <Heading></Heading>
-      {user?.userType === "ADMIN" && <PendingContributionList></PendingContributionList>}
+      {!isLoading && user?.userType === "ADMIN" && <PendingContributionList></PendingContributionList>}
       <ResourceStats></ResourceStats>
     </>
   );

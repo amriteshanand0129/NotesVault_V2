@@ -12,7 +12,7 @@ const PendingContributionList = () => {
 
   const fetchPendingContributions = async () => {
     setLoading(true);
-    const { data, error } = await getPendingContributions();
+    const { data, error } = await getPendingContributions(accessToken);
     if (error) {
       showMessage(error, "error");
       setLoading(false);
@@ -48,7 +48,7 @@ const PendingContributionList = () => {
 
   useEffect(() => {
     const fetchPendingCount = async () => {
-      const { data, error } = await getPendingContributions();
+      const { data, error } = await getPendingContributions(accessToken);
       if (error) {
         console.error(error);
         return;
@@ -57,7 +57,7 @@ const PendingContributionList = () => {
     };
 
     fetchPendingCount();
-  }, []);
+  }, [accessToken]);
   return (
     <div className="border-2 rounded-2xl m-2">
       

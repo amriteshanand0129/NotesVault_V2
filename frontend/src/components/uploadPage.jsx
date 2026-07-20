@@ -1,13 +1,11 @@
 import axios from "axios";
-import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
 import { useMessage } from "../context/messageContext";
 import { userContext } from "../context/userContext.jsx";
 
 const ResourceUploadPage = () => {
   const { showMessage } = useMessage();
-  const { user, accessToken, isLoading, isAuthenticated } = userContext();
-  const { loginWithRedirect } = useAuth0();
+  const { user, accessToken, isLoading, isAuthenticated, setShowAuthModal } = userContext();
 
   const [formData, setFormData] = useState({
     subject_code: "",
@@ -105,7 +103,7 @@ const ResourceUploadPage = () => {
                 {loading ? "Uploading..." : "Upload"}
               </button>
             ) : (
-              <div onClick={() => loginWithRedirect()} className="btn btn-dark w-full sm:w-auto">
+              <div onClick={() => setShowAuthModal(true)} className="btn btn-dark w-full sm:w-auto">
                 Login before making a contribution
               </div>
             )}
